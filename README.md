@@ -69,16 +69,7 @@ Role-based access ensures data confidentiality
 
 All critical actions are logged for auditing
 
-📂 Project Structure
-vendor-management/
- ├── controller/
- ├── service/
- ├── repository/
- ├── entity/
- ├── security/
- ├── dto/
- ├── exception/
- └── VendorManagementApplication.java
+
 
 🗄️ Database Tables
 
