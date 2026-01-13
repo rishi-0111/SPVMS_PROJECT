@@ -1,0 +1,471 @@
+{
+	"info": {
+		"_postman_id": "vendor-management-workflow-runner",
+		"name": "Vendor Management - Complete Workflow Runner",
+		"description": "**RUN THIS WITH COLLECTION RUNNER**\n\nThis collection executes a complete end-to-end workflow:\n1. Health check\n2. Create vendor (auto-saves ID)\n3. Verify vendor creation\n4. Create order (auto-saves ID)\n5. Submit for approval\n6. Approve order\n7. Start processing\n8. Mark as delivered\n9. Verify final status\n10. Get analytics\n\n**Instructions:**\n- Click 'Run' button (or use Collection Runner)\n- Select all requests\n- Click 'Run Vendor Management - Complete Workflow Runner'\n- Watch the automated execution!",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Step 1 - Health Check",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Health check passed\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"console.log(\"✓ Step 1: Health check successful\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/health",
+					"host": ["{{baseUrl}}"],
+					"path": ["health"]
+				}
+			}
+		},
+		{
+			"name": "Step 2 - Create Vendor",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Vendor created successfully\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"pm.collectionVariables.set(\"vendorId\", jsonData.id);",
+							"pm.collectionVariables.set(\"vendorName\", jsonData.name);",
+							"",
+							"console.log(\"✓ Step 2: Vendor created with ID: \" + jsonData.id);",
+							"console.log(\"   Vendor Name: \" + jsonData.name);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "userId",
+						"value": "admin"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Acme Supplies\",\n  \"deliveryRate\": 98.5,\n  \"qualityRating\": 4.7,\n  \"priceScore\": 85.0\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/vendors",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "vendors"]
+				}
+			}
+		},
+		{
+			"name": "Step 3 - Verify Vendor Created",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Vendor retrieved successfully\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"pm.test(\"Vendor ID matches\", function () {",
+							"    pm.expect(jsonData.id).to.eql(parseInt(pm.collectionVariables.get(\"vendorId\")));",
+							"});",
+							"",
+							"console.log(\"✓ Step 3: Vendor verification successful\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "userId",
+						"value": "admin"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/vendors/{{vendorId}}",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "vendors", "{{vendorId}}"]
+				}
+			}
+		},
+		{
+			"name": "Step 4 - Create Procurement Order",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Order created successfully\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"pm.collectionVariables.set(\"orderId\", jsonData.id);",
+							"",
+							"console.log(\"✓ Step 4: Order created with ID: \" + jsonData.id);",
+							"console.log(\"   Order Status: \" + jsonData.status);",
+							"console.log(\"   Total Amount: $\" + jsonData.totalAmount);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "userId",
+						"value": "john.doe"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"vendorId\": {{vendorId}},\n  \"requestedBy\": \"john.doe\",\n  \"items\": [\n    {\n      \"itemName\": \"Office Supplies\",\n      \"quantity\": 100,\n      \"unitPrice\": 5.50\n    },\n    {\n      \"itemName\": \"Printer Cartridges\",\n      \"quantity\": 50,\n      \"unitPrice\": 12.99\n    }\n  ],\n  \"notes\": \"Automated workflow test order\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/procurement/orders",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "procurement", "orders"]
+				}
+			}
+		},
+		{
+			"name": "Step 5 - Submit Order for Approval",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Order submitted successfully\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"pm.test(\"Order status is PENDING_APPROVAL\", function () {",
+							"    pm.expect(jsonData.status).to.eql(\"PENDING_APPROVAL\");",
+							"});",
+							"",
+							"console.log(\"✓ Step 5: Order submitted for approval\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "userId",
+						"value": "john.doe"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/procurement/orders/{{orderId}}/submit",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "procurement", "orders", "{{orderId}}", "submit"]
+				}
+			}
+		},
+		{
+			"name": "Step 6 - Approve Order",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Order approved successfully\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"pm.test(\"Order status is APPROVED\", function () {",
+							"    pm.expect(jsonData.status).to.eql(\"APPROVED\");",
+							"});",
+							"",
+							"console.log(\"✓ Step 6: Order approved by manager\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "userId",
+						"value": "manager"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/procurement/orders/{{orderId}}/approve?approver=manager@example.com",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "procurement", "orders", "{{orderId}}", "approve"],
+					"query": [
+						{
+							"key": "approver",
+							"value": "manager@example.com"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "Step 7 - Start Order Processing",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Order processing started\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"pm.test(\"Order status is IN_PROGRESS\", function () {",
+							"    pm.expect(jsonData.status).to.eql(\"IN_PROGRESS\");",
+							"});",
+							"",
+							"console.log(\"✓ Step 7: Order processing started\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "userId",
+						"value": "warehouse"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/procurement/orders/{{orderId}}/start",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "procurement", "orders", "{{orderId}}", "start"]
+				}
+			}
+		},
+		{
+			"name": "Step 8 - Mark Order as Delivered",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Order marked as delivered\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"pm.test(\"Order status is DELIVERED\", function () {",
+							"    pm.expect(jsonData.status).to.eql(\"DELIVERED\");",
+							"});",
+							"",
+							"console.log(\"✓ Step 8: Order delivered successfully\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "userId",
+						"value": "warehouse"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/procurement/orders/{{orderId}}/deliver",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "procurement", "orders", "{{orderId}}", "deliver"]
+				}
+			}
+		},
+		{
+			"name": "Step 9 - Get Final Order Status",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Final order status retrieved\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"console.log(\"✓ Step 9: Final order verification\");",
+							"console.log(\"   Order ID: \" + jsonData.id);",
+							"console.log(\"   Status: \" + jsonData.status);",
+							"console.log(\"   Total Amount: $\" + jsonData.totalAmount);",
+							"console.log(\"   Vendor: \" + jsonData.vendorName);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "userId",
+						"value": "admin"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/procurement/orders/{{orderId}}",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "procurement", "orders", "{{orderId}}"]
+				}
+			}
+		},
+		{
+			"name": "Step 10 - Get Analytics Summary",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Analytics retrieved successfully\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"console.log(\"✓ Step 10: Analytics summary\");",
+							"console.log(\"   Total Vendors: \" + jsonData.totalVendors);",
+							"console.log(\"   Average Performance: \" + jsonData.averagePerformanceScore);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "userId",
+						"value": "admin"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/analytics/summary",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "analytics", "summary"]
+				}
+			}
+		},
+		{
+			"name": "Step 11 - Get Audit Logs",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Audit logs retrieved\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"console.log(\"✓ Step 11: Audit logs retrieved\");",
+							"console.log(\"\\n════════════════════════════════════════\");",
+							"console.log(\"   🎉 WORKFLOW COMPLETED SUCCESSFULLY!\");",
+							"console.log(\"════════════════════════════════════════\");",
+							"console.log(\"Summary:\");",
+							"console.log(\"  • Vendor ID: \" + pm.collectionVariables.get(\"vendorId\"));",
+							"console.log(\"  • Order ID: \" + pm.collectionVariables.get(\"orderId\"));",
+							"console.log(\"  • All steps executed successfully\");",
+							"console.log(\"════════════════════════════════════════\\n\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "userId",
+						"value": "admin"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/admin/audit",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "admin", "audit"]
+				}
+			}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "vendorId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "orderId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "vendorName",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

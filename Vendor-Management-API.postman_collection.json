@@ -1,0 +1,851 @@
+{
+	"info": {
+		"_postman_id": "vendor-management-api-2025",
+		"name": "Vendor Management System API",
+		"description": "Complete API collection for Vendor Management System.\n\n**IMPORTANT**: Run requests in this order:\n1. Health Check\n2. Create Vendor (saves vendorId)\n3. Create Procurement Order (uses vendorId, saves orderId)\n4. Submit Order for Approval\n5. Approve Order\n6. Other operations as needed\n\nThe collection automatically captures IDs from responses using test scripts.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Vendor Management",
+			"item": [
+				{
+					"name": "Get All Vendors",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/vendors",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vendors"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Vendor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"vendorId\", jsonData.id);",
+									"    console.log(\"Vendor created with ID: \" + jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Acme Supplies\",\n  \"deliveryRate\": 98.5,\n  \"qualityRating\": 4.7,\n  \"priceScore\": 85.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/vendors",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vendors"
+							]
+						},
+						"description": "Creates a new vendor. The vendor ID is automatically saved to {{vendorId}} variable."
+					}
+				},
+				{
+					"name": "Get Vendor by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/vendors/{{vendorId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vendors",
+								"{{vendorId}}"
+							]
+						},
+						"description": "Gets vendor by ID. Uses the {{vendorId}} variable set by Create Vendor request."
+					}
+				},
+				{
+					"name": "Update Vendor",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Acme Supplies Updated\",\n  \"deliveryRate\": 99.0,\n  \"qualityRating\": 4.8,\n  \"priceScore\": 90.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/vendors/{{vendorId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vendors",
+								"{{vendorId}}"
+							]
+						},
+						"description": "Updates vendor. Uses the {{vendorId}} variable."
+					}
+				},
+				{
+					"name": "Delete Vendor",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/vendors/{{vendorId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vendors",
+								"{{vendorId}}"
+							]
+						},
+						"description": "Deletes vendor. WARNING: Run this last as it will remove the vendor!"
+					}
+				},
+				{
+					"name": "Get High Performance Vendors",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/vendors/performance?minScore=70",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vendors",
+								"performance"
+							],
+							"query": [
+								{
+									"key": "minScore",
+									"value": "70"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Procurement Management",
+			"item": [
+				{
+					"name": "Create Procurement Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"orderId\", jsonData.id);",
+									"    console.log(\"Order created with ID: \" + jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "userId",
+								"value": "john.doe",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vendorId\": {{vendorId}},\n  \"requestedBy\": \"john.doe\",\n  \"items\": [\n    {\n      \"itemName\": \"Office Supplies\",\n      \"quantity\": 100,\n      \"unitPrice\": 5.50\n    },\n    {\n      \"itemName\": \"Printer Cartridges\",\n      \"quantity\": 50,\n      \"unitPrice\": 12.99\n    }\n  ],\n  \"notes\": \"Urgent order for Q1\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/procurement/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"procurement",
+								"orders"
+							]
+						},
+						"description": "Creates a procurement order using {{vendorId}}. Order ID is saved to {{orderId}} variable."
+					}
+				},
+				{
+					"name": "Get Order by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userId",
+								"value": "john.doe",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/procurement/orders/{{orderId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"procurement",
+								"orders",
+								"{{orderId}}"
+							]
+						},
+						"description": "Gets order details using {{orderId}} variable."
+					}
+				},
+				{
+					"name": "Submit Order for Approval",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "userId",
+								"value": "john.doe",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/procurement/orders/{{orderId}}/submit",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"procurement",
+								"orders",
+								"{{orderId}}",
+								"submit"
+							]
+						},
+						"description": "Submits order for approval. Run after creating an order."
+					}
+				},
+				{
+					"name": "Approve Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "userId",
+								"value": "manager",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/procurement/orders/{{orderId}}/approve?approver=manager@example.com",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"procurement",
+								"orders",
+								"{{orderId}}",
+								"approve"
+							],
+							"query": [
+								{
+									"key": "approver",
+									"value": "manager@example.com",
+									"description": "Email or name of the person approving the order (required)"
+								}
+							]
+						},
+						"description": "Approves submitted order. Run after Submit Order."
+					}
+				},
+				{
+					"name": "Start Order Processing",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "userId",
+								"value": "warehouse",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/procurement/orders/{{orderId}}/start",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"procurement",
+								"orders",
+								"{{orderId}}",
+								"start"
+							]
+						},
+						"description": "Starts processing the approved order."
+					}
+				},
+				{
+					"name": "Mark Order as Delivered",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "userId",
+								"value": "warehouse",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/procurement/orders/{{orderId}}/deliver",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"procurement",
+								"orders",
+								"{{orderId}}",
+								"deliver"
+							]
+						},
+						"description": "Marks order as delivered."
+					}
+				},
+				{
+					"name": "Cancel Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "userId",
+								"value": "manager",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/procurement/orders/{{orderId}}/cancel",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"procurement",
+								"orders",
+								"{{orderId}}",
+								"cancel"
+							]
+						},
+						"description": "Cancels the order."
+					}
+				},
+				{
+					"name": "Get All Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/procurement/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"procurement",
+								"orders"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Analytics",
+			"item": [
+				{
+					"name": "Get Analytics Summary",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/summary",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"summary"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Performance Distribution",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/distribution",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"distribution"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Top Vendors",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/vendors/top?limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"vendors",
+								"top"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Search Vendors by Name",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/vendors/search?name=acme",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"vendors",
+								"search"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "acme"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Vendor Performance",
+			"item": [
+				{
+					"name": "Recalculate All Vendor Scores",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/vendor-performance/recalculate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vendor-performance",
+								"recalculate"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Audit Logs",
+			"item": [
+				{
+					"name": "Get All Audit Logs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/audit",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"audit"
+							]
+						}
+					}
+				},
+				{
+					"name": "Export Audit Logs as CSV",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/audit/export",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"audit",
+								"export"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Email Notification Management",
+			"item": [
+				{
+					"name": "Get All Email Logs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/emails",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"emails"
+							]
+						},
+						"description": "Retrieve all email notification logs from the system"
+					}
+				},
+				{
+					"name": "Get Failed Emails",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/emails/failed",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"emails",
+								"failed"
+							]
+						},
+						"description": "Retrieve only failed email notifications that need retry"
+					}
+				},
+				{
+					"name": "Get Emails for Specific Order",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/emails/order/{{orderId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"emails",
+								"order",
+								"{{orderId}}"
+							]
+						},
+						"description": "Get all email notifications sent for a specific procurement order using {{orderId}}"
+					}
+				},
+				{
+					"name": "Retry All Failed Emails",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "userId",
+								"value": "admin",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/emails/retry-all",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"emails",
+								"retry-all"
+							]
+						},
+						"description": "Manually trigger retry for all failed email notifications"
+					}
+				}
+			]
+		},
+		{
+			"name": "Test Endpoints",
+			"item": [
+				{
+					"name": "Create Test Entity",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "userId",
+								"value": "testuser",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Item\",\n  \"description\": \"Test Description\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/test",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"test"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Test Entities",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userId",
+								"value": "testuser",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/test",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"test"
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "vendorId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "orderId",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
