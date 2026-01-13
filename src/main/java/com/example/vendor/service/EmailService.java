@@ -19,7 +19,7 @@ import com.example.vendor.repository.EmailLogRepository;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -62,7 +62,7 @@ public class EmailService {
             variables.put("orderNumber", order.getOrderNumber());
             variables.put("vendorName", order.getVendor().getName());
             variables.put("requestedBy", order.getRequestedBy());
-            variables.put("totalAmount", String.format("%.2f", order.getTotalAmount()));
+            variables.put("totalAmount", "%.2f".formatted(order.getTotalAmount()));
             variables.put("submittedAt", LocalDateTime.now().format(DATE_FORMATTER));
             variables.put("notes", order.getNotes() != null ? order.getNotes() : "No additional notes");
 
@@ -92,7 +92,7 @@ public class EmailService {
             variables.put("orderNumber", order.getOrderNumber());
             variables.put("vendorName", order.getVendor().getName());
             variables.put("requestedBy", order.getRequestedBy());
-            variables.put("totalAmount", String.format("%.2f", order.getTotalAmount()));
+            variables.put("totalAmount", "%.2f".formatted(order.getTotalAmount()));
             variables.put("approvedBy", order.getApprovedBy());
             variables.put("approvedAt", order.getApprovedAt().format(DATE_FORMATTER));
 
@@ -170,7 +170,7 @@ public class EmailService {
     private String buildEmailBody(String templateName, Map<String, String> variables) {
         try {
             String templatePath = TEMPLATE_PATH + templateName;
-            String template = new String(Files.readAllBytes(Paths.get(templatePath)));
+            String template = new String(Files.readAllBytes(Path.of(templatePath)));
 
             // Simple variable substitution
             for (Map.Entry<String, String> entry : variables.entrySet()) {
