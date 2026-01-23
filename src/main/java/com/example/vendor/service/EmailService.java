@@ -68,11 +68,17 @@ public class EmailService {
 
             String body = buildEmailBody("order-submitted-template.html", variables);
 
-            // Send to all approvers
-            String[] recipients = approverEmails.split(",");
-            for (String recipient : recipients) {
-                EmailLog emailLog = createEmailLog(recipient.trim(), subject, body, order.getId());
+            // Send to dynamic approver email or fallback to configured approvers
+            if (order.getApproverEmail() != null && !order.getApproverEmail().trim().isEmpty()) {
+                EmailLog emailLog = createEmailLog(order.getApproverEmail(), subject, body, order.getId());
                 sendEmailWithRetry(emailLog);
+            } else {
+                // Fallback to configured approvers if no dynamic email provided
+                String[] recipients = approverEmails.split(",");
+                for (String recipient : recipients) {
+                    EmailLog emailLog = createEmailLog(recipient.trim(), subject, body, order.getId());
+                    sendEmailWithRetry(emailLog);
+                }
             }
         } catch (Exception e) {
             System.err.println("Error preparing order submitted email: " + e.getMessage());
@@ -98,9 +104,13 @@ public class EmailService {
 
             String body = buildEmailBody("order-approved-template.html", variables);
 
-            // Send to the person who requested the order
-            EmailLog emailLog = createEmailLog(order.getRequestedBy(), subject, body, order.getId());
-            sendEmailWithRetry(emailLog);
+            // Send to the person who requested the order using their email
+            if (order.getRequesterEmail() != null && !order.getRequesterEmail().trim().isEmpty()) {
+                EmailLog emailLog = createEmailLog(order.getRequesterEmail(), subject, body, order.getId());
+                sendEmailWithRetry(emailLog);
+            } else {
+                System.err.println("⚠️ No requester email provided for order: " + order.getOrderNumber());
+            }
         } catch (Exception e) {
             System.err.println("Error preparing order approved email: " + e.getMessage());
             e.printStackTrace();

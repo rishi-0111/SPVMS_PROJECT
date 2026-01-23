@@ -21,7 +21,9 @@ public class ProcurementMapper {
                 .collect(Collectors.toList()));
         dto.setStatus(order.getStatus() != null ? order.getStatus().name() : null);
         dto.setRequestedBy(order.getRequestedBy());
+        dto.setRequesterEmail(order.getRequesterEmail());
         dto.setApprovedBy(order.getApprovedBy());
+        dto.setApproverEmail(order.getApproverEmail());
         dto.setCreatedAt(order.getCreatedAt());
         dto.setApprovedAt(order.getApprovedAt());
         dto.setDeliveredAt(order.getDeliveredAt());

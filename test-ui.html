@@ -193,6 +193,25 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+        .email-display-box {
+            background: #e3f2fd;
+            border: 2px solid #2196F3;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #1565c0;
+            font-weight: 600;
+        }
+
+        .email-display-box.updated {
+            animation: highlight 0.5s ease-in-out;
+        }
+
+        @keyframes highlight {
+            0% { background: #fff3cd; border-color: #ffc107; }
+            100% { background: #e3f2fd; border-color: #2196F3; }
+        }
+
         .button-group {
             display: flex;
             gap: 10px;
@@ -348,6 +367,21 @@
             color: #38ef7d;
             margin-bottom: 20px;
         }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 
@@ -413,6 +447,14 @@
                     <small style="color: #666; display: block; margin-top: 5px;">
                         This email will receive the "Order Submitted" notification
                     </small>
+                </div>
+
+                <div class="form-group">
+                    <label>🆕 Additional Receiver Email</label>
+                    <input type="email" id="additionalReceiverEmail" placeholder="Enter additional receiver email" oninput="updateReceiverDisplay()">
+                    <div id="receiverDisplay" class="email-display-box" style="display: none;">
+                        📬 Email will be sent to: <strong id="displayReceiverEmail">-</strong>
+                    </div>
                 </div>
 
                 <div class="button-group">
@@ -591,7 +633,7 @@
                     <div class="completion-checkmark">✅</div>
                     <h2>Workflow Complete!</h2>
                     <p style="color: #666; margin-bottom: 20px;">
-                        Two emails should have been sent. Check the logs below and your email inbox.
+                        Emails have been sent. Check the logs below and your email inbox.
                     </p>
                 </div>
 
@@ -628,8 +670,28 @@
             orderNumber: null,
             totalAmount: null,
             requesterEmail: null,
-            managerEmail: null
+            managerEmail: null,
+            additionalReceiverEmail: null
         };
+
+        // Update receiver email display dynamically
+        function updateReceiverDisplay() {
+            const emailInput = document.getElementById('additionalReceiverEmail');
+            const display = document.getElementById('receiverDisplay');
+            const displayEmail = document.getElementById('displayReceiverEmail');
+            const email = emailInput.value.trim();
+
+            if (email) {
+                display.style.display = 'block';
+                displayEmail.textContent = email;
+                display.classList.add('updated');
+                setTimeout(() => display.classList.remove('updated'), 500);
+                workflowData.additionalReceiverEmail = email;
+            } else {
+                display.style.display = 'none';
+                workflowData.additionalReceiverEmail = null;
+            }
+        }
 
         function goToStep(step) {
             // Update progress bar
@@ -766,14 +828,24 @@
             try {
                 const data = await apiCall(`/api/procurement/orders/${workflowData.orderId}/submit`, 'POST');
 
+                // Send email to additional receiver if provided
+                if (workflowData.additionalReceiverEmail) {
+                    await sendCustomEmail(
+                        workflowData.additionalReceiverEmail,
+                        'New Procurement Order Submitted',
+                        `Order #${workflowData.orderNumber} has been submitted for approval. Amount: $${workflowData.totalAmount}`
+                    );
+                }
+
                 showResult('submitResult', `
                     <strong>✅ Order Submitted Successfully!</strong><br><br>
                     <strong>Order Number:</strong> ${data.orderNumber}<br>
                     <strong>New Status:</strong> <span class="badge badge-info">${data.status}</span><br><br>
                     <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                        <strong>📧 Email Sent!</strong><br>
-                        An approval request email has been sent to:<br>
+                        <strong>📧 Emails Sent!</strong><br>
+                        Approval request email sent to:<br>
                         <strong>${workflowData.managerEmail}</strong><br><br>
+                        ${workflowData.additionalReceiverEmail ? `Additional email sent to:<br><strong>${workflowData.additionalReceiverEmail}</strong><br><br>` : ''}
                         Subject: "New Procurement Order Submitted for Your Approval"
                     </div><br>
                     <button onclick="goToStep(5)" style="margin-top: 10px;">Next: Approve Order ➜</button>
@@ -790,6 +862,15 @@
                     'POST'
                 );
 
+                // Send email to additional receiver if provided
+                if (workflowData.additionalReceiverEmail) {
+                    await sendCustomEmail(
+                        workflowData.additionalReceiverEmail,
+                        'Procurement Order Approved',
+                        `Order #${workflowData.orderNumber} has been approved. Amount: $${workflowData.totalAmount}`
+                    );
+                }
+
                 showResult('approveResult', `
                     <strong>✅ Order Approved Successfully!</strong><br><br>
                     <strong>Order Number:</strong> ${data.orderNumber}<br>
@@ -797,15 +878,29 @@
                     <strong>Approved By:</strong> ${data.approvedBy}<br>
                     <strong>Approved At:</strong> ${data.approvedAt}<br><br>
                     <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                        <strong>📧 Email Sent!</strong><br>
-                        An approval confirmation email has been sent to:<br>
+                        <strong>📧 Emails Sent!</strong><br>
+                        Approval confirmation email sent to:<br>
                         <strong>${workflowData.requesterEmail}</strong><br><br>
+                        ${workflowData.additionalReceiverEmail ? `Additional email sent to:<br><strong>${workflowData.additionalReceiverEmail}</strong><br><br>` : ''}
                         Subject: "Your Procurement Order Has Been Approved"
                     </div><br>
                     <button onclick="goToStep(6)" style="margin-top: 10px;">Next: View Emails ➜</button>
                 `);
             } catch (error) {
                 showResult('approveResult', `<strong>❌ Error Approving Order:</strong><br><pre>${error.message}</pre>`, true);
+            }
+        }
+
+        async function sendCustomEmail(recipient, subject, body) {
+            try {
+                await apiCall('/api/emails/send', 'POST', {
+                    recipient: recipient,
+                    subject: subject,
+                    body: body,
+                    orderId: workflowData.orderId
+                });
+            } catch (error) {
+                console.error('Error sending custom email:', error);
             }
         }
 

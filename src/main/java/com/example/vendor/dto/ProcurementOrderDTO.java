@@ -1,6 +1,5 @@
 package com.example.vendor.dto;
 
-import com.example.vendor.entity.ProcurementOrder;
 import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,7 +21,13 @@ public class ProcurementOrderDTO {
     @NotBlank(message = "Requester name is required")
     private String requestedBy;
 
+    @Email(message = "Requester email must be valid")
+    private String requesterEmail;
+
     private String approvedBy;
+
+    @Email(message = "Approver email must be valid")
+    private String approverEmail;
     private LocalDateTime createdAt;
     private LocalDateTime approvedAt;
     private LocalDateTime deliveredAt;
@@ -51,8 +56,14 @@ public class ProcurementOrderDTO {
     public String getRequestedBy() { return requestedBy; }
     public void setRequestedBy(String requestedBy) { this.requestedBy = requestedBy; }
 
+    public String getRequesterEmail() { return requesterEmail; }
+    public void setRequesterEmail(String requesterEmail) { this.requesterEmail = requesterEmail; }
+
     public String getApprovedBy() { return approvedBy; }
     public void setApprovedBy(String approvedBy) { this.approvedBy = approvedBy; }
+
+    public String getApproverEmail() { return approverEmail; }
+    public void setApproverEmail(String approverEmail) { this.approverEmail = approverEmail; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

@@ -24,7 +24,9 @@ public class ProcurementOrder {
     private OrderStatus status;
 
     private String requestedBy;
+    private String requesterEmail;
     private String approvedBy;
+    private String approverEmail;
     private LocalDateTime createdAt;
     private LocalDateTime approvedAt;
     private LocalDateTime deliveredAt;
@@ -59,8 +61,14 @@ public class ProcurementOrder {
     public String getRequestedBy() { return requestedBy; }
     public void setRequestedBy(String requestedBy) { this.requestedBy = requestedBy; }
 
+    public String getRequesterEmail() { return requesterEmail; }
+    public void setRequesterEmail(String requesterEmail) { this.requesterEmail = requesterEmail; }
+
     public String getApprovedBy() { return approvedBy; }
     public void setApprovedBy(String approvedBy) { this.approvedBy = approvedBy; }
+
+    public String getApproverEmail() { return approverEmail; }
+    public void setApproverEmail(String approverEmail) { this.approverEmail = approverEmail; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

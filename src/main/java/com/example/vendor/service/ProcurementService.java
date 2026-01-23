@@ -40,6 +40,8 @@ public class ProcurementService {
         
         order.setStatus(ProcurementOrder.OrderStatus.DRAFT);
         order.setRequestedBy(dto.getRequestedBy());
+        order.setRequesterEmail(dto.getRequesterEmail());
+        order.setApproverEmail(dto.getApproverEmail());
         order.setCreatedAt(LocalDateTime.now());
         order.setNotes(dto.getNotes());
         
